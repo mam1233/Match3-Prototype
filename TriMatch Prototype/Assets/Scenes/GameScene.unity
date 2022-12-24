@@ -201,6 +201,7 @@ GameObject:
   m_Component:
   - component: {fileID: 142393535}
   - component: {fileID: 142393536}
+  - component: {fileID: 142393537}
   m_Layer: 0
   m_Name: Match3
   m_TagString: Untagged
@@ -260,6 +261,18 @@ MonoBehaviour:
   - {fileID: 5528609633622603068, guid: 2c97df9695607b04c92ec362851a0890, type: 3}
   gameBoard: {fileID: 751956649}
   nodePiece: {fileID: 1975568356070147104, guid: b4dc267c9175ca84c88a915b4fd1a1a9, type: 3}
+--- !u!114 &142393537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142393534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 500513fbc65ceb040ae4c0201aa51a80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

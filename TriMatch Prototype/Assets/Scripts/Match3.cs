@@ -17,6 +17,8 @@ public class Match3 : MonoBehaviour
     int width;
     int height;
 
+    List<NodePiece> updating;
+
     System.Random random;
     void Start()
     {
@@ -29,10 +31,25 @@ public class Match3 : MonoBehaviour
     {
         string seed = getRandomSeed();
         random = new System.Random(seed.GetHashCode());
-
+        updating = new List<NodePiece>();
         InitializeBoard();
         VerifyBoard();
         InstantiateBoard();
+    }
+
+    private void Update()
+    {
+        List<NodePiece> finishedUpdating = new List<NodePiece>();
+        for (int i = 0; i < updating.Count; i++)
+        {
+            NodePiece piece = updating[i];
+            if (!piece.UpdatePiece()) finishedUpdating.Add(piece);
+        }
+        for (int i = 0; i < finishedUpdating.Count; i++)
+        {
+            NodePiece piece = finishedUpdating[i];
+            updating.Remove(piece);
+        }
     }
 
     void InitializeBoard()
@@ -77,18 +94,48 @@ public class Match3 : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                int val = board[x, y].value;
+                Node node = getNodeAtPoint(new Point(x, y));
+                int val = node.value;
                 if (val <= 0) continue;
-
+                    
                 GameObject p = Instantiate(nodePiece, gameBoard);
                 RectTransform rect = p.GetComponent<RectTransform>();
-                NodePiece node = p.GetComponent<NodePiece>();
+                NodePiece nodepiece = p.GetComponent<NodePiece>();
                 rect.anchoredPosition = new Vector2(32 + (64 * x), -32 + (-64 * y));
-                node.Initialize(val, new Point(x, y), pieces[val - 1]);
+                nodepiece.Initialize(val, new Point(x, y), pieces[val - 1]);
+                node.SetPiece(nodepiece);
             }
         }
     }
+
+    public void ResetPiece(NodePiece piece)
+    {
+        piece.ResetPosition();
+        updating.Add(piece);
+    }
     
+    public void FlipPieces(Point one, Point two)
+    {
+        if (getValueAtPoint(one) < 0) return;
+        Node nodeOne = getNodeAtPoint(one);
+        NodePiece pieceOne = nodeOne.getPiece();
+        if(getValueAtPoint(two) > 0)
+        {
+            Node nodeTwo = getNodeAtPoint(two);
+            NodePiece pieceTwo = nodeTwo.getPiece();
+            nodeOne.SetPiece(pieceTwo);
+            nodeTwo.SetPiece(pieceOne);
+
+
+
+            updating.Add(pieceOne);
+            updating.Add(pieceTwo);
+        }
+        else
+        {
+            
+        }
+    }
     public List<Point> isConnected(Point p, bool main)
     {
         List<Point> connected = new List<Point>();
@@ -225,7 +272,15 @@ public class Match3 : MonoBehaviour
         return seed;
     }
 
+    public Vector2 getPositionFromPoint(Point p)
+    {
+        return new Vector2(32 + (64 * p.x), -32 - (64 * p.y));
+    }
 
+    public Node getNodeAtPoint(Point p)
+    {
+        return board[p.x, p.y];
+    }
 }
 
 [System.Serializable]
@@ -234,9 +289,23 @@ public class Node
     public Point index;
     public int value;
 
+    NodePiece piece;
     public Node(Point p, int v)
     {
         index = p;
         value = v;
+    }
+
+    public void SetPiece(NodePiece p)
+    {
+        piece = p;
+        value = (piece == null) ? 0 : piece.val;
+        if (piece == null) return;
+        piece.SetIndex(index);
+    }
+
+    public NodePiece getPiece()
+    {
+        return piece;
     }
 }

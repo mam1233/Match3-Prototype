@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,12 @@ public class Point
     {
         x *= m;
         y *= m;
+    }
+
+    public void add(Point p)
+    {
+        x += p.x;
+        y += p.y;
     }
 
     public void add(int a)

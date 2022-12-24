@@ -16,8 +16,11 @@ public class Match3 : MonoBehaviour
     Node[,] board;
     int width;
     int height;
+    int[] fills;
 
     List<NodePiece> updating;
+    List<FlippedPieces> flipped;
+    List<NodePiece> dead;
 
     System.Random random;
     void Start()
@@ -29,9 +32,13 @@ public class Match3 : MonoBehaviour
 
     void StartGame()
     {
+        fills = new int[width];
         string seed = getRandomSeed();
         random = new System.Random(seed.GetHashCode());
         updating = new List<NodePiece>();
+        flipped = new List<FlippedPieces>();
+        dead = new List<NodePiece>();
+
         InitializeBoard();
         VerifyBoard();
         InstantiateBoard();
@@ -48,10 +55,122 @@ public class Match3 : MonoBehaviour
         for (int i = 0; i < finishedUpdating.Count; i++)
         {
             NodePiece piece = finishedUpdating[i];
+            FlippedPieces flip = getFlipped(piece);
+            NodePiece flippedPiece = null;
+
+            int x = (int)piece.index.x;
+            fills[x] = Mathf.Clamp(fills[x] - 1, 0, width);
+
+            List<Point> connected = isConnected(piece.index, true);
+
+            bool wasFlipped = (flip != null);
+            if (wasFlipped)
+            { 
+                flippedPiece = flip.getOtherPiece(piece);
+                AddPoints(ref connected, isConnected(flippedPiece.index, true));
+            }
+            if (connected.Count  == 0)
+            {
+                if (wasFlipped)
+                {
+                    FlipPieces(piece.index, flippedPiece.index, false);
+                }
+            }
+            else
+            {
+                foreach (Point point in connected)
+                {
+                    Node node = getNodeAtPoint(point);
+                    NodePiece nodePiece = node.getPiece();
+                    if (nodePiece != null)
+                    {
+                        nodePiece.gameObject.SetActive(false);
+                        dead.Add(nodePiece);
+                    }
+                    node.SetPiece(null);
+                }
+                ApplyGravityTo();
+            }
+
+            flipped.Remove(flip);
             updating.Remove(piece);
         }
     }
 
+    void ApplyGravityTo()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = (height-1); y >= 0 ; y--)
+            {
+                Point p = new Point(x, y);
+                Node node = getNodeAtPoint(p);
+                int val = getValueAtPoint(p);
+                if (val != 0) continue;
+                for (int ny = (y-1); ny >= -1; ny--)
+                {
+                    Point next = new Point(x, ny);
+                    int nextVal = getValueAtPoint(next);
+                    if (nextVal == 0)
+                        continue;
+                    if(nextVal != -1)
+                    {
+                        Node set = getNodeAtPoint(next);
+                        NodePiece piece = set.getPiece();
+
+                        node.SetPiece(piece);
+                        updating.Add(piece);
+
+                        set.SetPiece(null);
+                    }
+                    else
+                    {
+                        int newVal = fillPiece();
+                        NodePiece piece;
+                        Point fallPoint = new Point(x, (-1 - fills[x]));
+                        if(dead.Count > 0)
+                        {
+                            NodePiece revived = dead[0];
+                            revived.gameObject.SetActive(true);
+                            revived.rect.anchoredPosition = getPositionFromPoint(fallPoint);
+                            piece = revived;
+
+                            dead.RemoveAt(0);
+                        }
+                        else
+                        {
+                            GameObject newPiece = Instantiate(nodePiece, gameBoard);
+                            NodePiece n = newPiece.GetComponent<NodePiece>();
+                            RectTransform rect = newPiece.GetComponent<RectTransform>();
+                            rect.anchoredPosition = getPositionFromPoint(fallPoint);
+                            piece = n;
+                        }
+                        piece.Initialize(newVal, p, pieces[newVal - 1]);
+
+                        Node hole = getNodeAtPoint(p);
+                        hole.SetPiece(piece);
+                        ResetPiece(piece);
+                        fills[x]++;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    FlippedPieces getFlipped(NodePiece p)
+    {
+        FlippedPieces flip = null;
+        for (int i = 0; i < flipped.Count; i++)
+        {
+            if (flipped[i].getOtherPiece(p) != null)
+            {
+                flip = flipped[i];
+                break;
+            }
+        }
+        return flip;
+    }
     void InitializeBoard()
     {
         board = new Node[width, height];
@@ -114,7 +233,7 @@ public class Match3 : MonoBehaviour
         updating.Add(piece);
     }
     
-    public void FlipPieces(Point one, Point two)
+    public void FlipPieces(Point one, Point two , bool main)
     {
         if (getValueAtPoint(one) < 0) return;
         Node nodeOne = getNodeAtPoint(one);
@@ -126,14 +245,15 @@ public class Match3 : MonoBehaviour
             nodeOne.SetPiece(pieceTwo);
             nodeTwo.SetPiece(pieceOne);
 
-
+            if(main)
+                flipped.Add(new FlippedPieces(pieceOne, pieceTwo));
 
             updating.Add(pieceOne);
             updating.Add(pieceTwo);
         }
         else
         {
-            
+            ResetPiece(pieceOne);
         }
     }
     public List<Point> isConnected(Point p, bool main)
@@ -307,5 +427,27 @@ public class Node
     public NodePiece getPiece()
     {
         return piece;
+    }
+}
+
+[System.Serializable]
+public class FlippedPieces
+{
+    NodePiece one;
+    NodePiece two;
+
+    public FlippedPieces(NodePiece o, NodePiece t)
+    {
+        one = o; two = t;
+    }
+
+    public NodePiece getOtherPiece(NodePiece p)
+    {
+        if (p == one)
+            return two;
+        else if (p == two)
+            return one;
+        else
+            return null;
     }
 }

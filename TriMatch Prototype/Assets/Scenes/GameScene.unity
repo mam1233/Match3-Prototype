@@ -183,9 +183,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 19578588}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.000061035156, y: 0.00012207031, z: 0}
+  m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 0.9999999}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -261,6 +261,7 @@ MonoBehaviour:
   - {fileID: 5528609633622603068, guid: 2c97df9695607b04c92ec362851a0890, type: 3}
   gameBoard: {fileID: 751956649}
   nodePiece: {fileID: 1975568356070147104, guid: b4dc267c9175ca84c88a915b4fd1a1a9, type: 3}
+  breakEffect: {fileID: 1910976247673530861, guid: d2a12d91863bed3439ccec0352a5f858, type: 3}
 --- !u!114 &142393537
 MonoBehaviour:
   m_ObjectHideFlags: 0
